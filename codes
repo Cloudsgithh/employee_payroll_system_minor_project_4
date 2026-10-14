@@ -1,0 +1,172 @@
+
+import json
+import os
+
+FILE_NAME = "payroll_data.json"
+
+
+def load_data():
+    if os.path.exists(FILE_NAME):
+        try:
+            with open(FILE_NAME, "r") as file:
+                return json.load(file)
+        except (json.JSONDecodeError, OSError):
+            return {}
+    return {}
+
+
+employees = load_data()
+
+
+def add_employee():
+    emp_id = input("Enter Employee ID: ")
+
+    if emp_id in employees:
+        print("Employee ID already exists!")
+        return
+
+    name = input("Enter Employee Name: ")
+    department = input("Enter Department: ")
+    basic_salary = float(input("Enter Basic Salary: "))
+    allowances = float(input("Enter Allowances: "))
+    deductions = float(input("Enter Deductions: "))
+
+    if basic_salary < 0 or allowances < 0 or deductions < 0:
+        print("Salary components cannot be negative!")
+        return
+
+    gross_salary = basic_salary + allowances
+    net_salary = gross_salary - deductions
+
+    employees[emp_id] = {
+        "name": name,
+        "department": department,
+        "basic_salary": basic_salary,
+        "allowances": allowances,
+        "deductions": deductions,
+        "gross_salary": gross_salary,
+        "net_salary": net_salary
+    }
+
+    print("Employee added successfully!")
+
+
+def calculate_salary():
+    emp_id = input("Enter Employee ID: ")
+
+    if emp_id not in employees:
+        print("Employee not found!")
+        return
+
+    emp = employees[emp_id]
+    gross = emp["basic_salary"] + emp["allowances"]
+    net = gross - emp["deductions"]
+
+    emp["gross_salary"] = gross
+    emp["net_salary"] = net
+
+    print(f"Gross Salary: Rs. {gross:.2f}")
+    print(f"Net Salary: Rs. {net:.2f}")
+
+
+def generate_payslip():
+    emp_id = input("Enter Employee ID: ")
+
+    if emp_id not in employees:
+        print("Employee not found!")
+        return
+
+    emp = employees[emp_id]
+
+    payslip = f"""
+========== EMPLOYEE PAYSLIP ==========
+Employee ID    : {emp_id}
+Employee Name  : {emp['name']}
+Department     : {emp['department']}
+--------------------------------------
+Basic Salary   : Rs. {emp['basic_salary']:.2f}
+Allowances     : Rs. {emp['allowances']:.2f}
+Gross Salary   : Rs. {emp['gross_salary']:.2f}
+Deductions     : Rs. {emp['deductions']:.2f}
+--------------------------------------
+Net Salary     : Rs. {emp['net_salary']:.2f}
+======================================
+"""
+
+    print(payslip)
+
+    filename = f"payslip_{emp_id}.txt"
+    with open(filename, "w") as file:
+        file.write(payslip)
+
+    print(f"Payslip saved to {filename}")
+
+
+def search_employee():
+    emp_id = input("Enter Employee ID to search: ")
+
+    if emp_id in employees:
+        emp = employees[emp_id]
+        print("\nEmployee Details")
+        print("-------------------------")
+        print("Employee ID:", emp_id)
+        print("Name:", emp["name"])
+        print("Department:", emp["department"])
+        print(f"Basic Salary: Rs. {emp['basic_salary']:.2f}")
+        print(f"Allowances: Rs. {emp['allowances']:.2f}")
+        print(f"Deductions: Rs. {emp['deductions']:.2f}")
+        print(f"Net Salary: Rs. {emp['net_salary']:.2f}")
+    else:
+        print("Employee not found!")
+
+
+def save_data():
+    with open(FILE_NAME, "w") as file:
+        json.dump(employees, file, indent=4)
+
+    print("Payroll data saved successfully!")
+
+
+def main():
+    while True:
+        print("\n===== EMPLOYEE PAYROLL SYSTEM =====")
+        print("1. Add Employee")
+        print("2. Calculate Salary")
+        print("3. Generate Payslip")
+        print("4. Search Employee")
+        print("5. Save Payroll Data")
+        print("6. Display All Employees")
+        print("7. Exit")
+
+        choice = input("Enter your choice: ")
+
+        if choice == "1":
+            add_employee()
+        elif choice == "2":
+            calculate_salary()
+        elif choice == "3":
+            generate_payslip()
+        elif choice == "4":
+            search_employee()
+        elif choice == "5":
+            save_data()
+        elif choice == "6":
+            if employees:
+                for emp_id, emp in employees.items():
+                    print(
+                        emp_id, "-", emp["name"],
+                        "- Net Salary: Rs.",
+                        f"{emp['net_salary']:.2f}"
+                    )
+            else:
+                print("No employees found!")
+        elif choice == "7":
+            save_data()
+            print("Exiting Employee Payroll System. Goodbye!")
+            break
+        else:
+            print("Invalid choice! Please try again.")
+
+
+if __name__ == "__main__":
+    main()
